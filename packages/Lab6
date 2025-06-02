@@ -1,0 +1,39 @@
+6.1
+event Process_Start:
+    key:
+        event_src.host
+    filter {
+        filter::NotFromCorrelator()
+        and event_src.title == "sysmon"
+        and msgid == "8"
+        and regex(lower(subject.process.fullpath), "users", 0) != null
+        and regex(lower(object.process.fullpath), 'windows\\\\sys') != null
+    }
+
+6.2.2
+event Process_Start:
+    key:
+        event_src.host
+    filter {
+        filter::NotFromCorrelator()
+        and event_src.title == "sysmon"
+        and msgid == "1"
+        and regex(lower(object.process.cmdline), '\/generic\:microsoft_windows_shell_zipfolder\:filename\=', 0) != null
+    }
+
+6.3
+event Process:
+    key:
+        event_src.host, msgid, object.path
+    filter {
+        filter::NotFromCorrelator()
+        and event_src.title == "sysmon"
+        and msgid == "10"
+
+        and object.property == "GrantedAccess"
+        and not (
+            regex(lower(subject.process.fullpath), "windows\\sys", 0) != null 
+        )
+    }
+
+rule labrab6_3: Process[3,] with different object.process.name timer 3s
